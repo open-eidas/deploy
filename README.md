@@ -2,8 +2,8 @@
 
 Dépôt "app-of-apps" ArgoCD pour les déploiements Open eIDAS — actuellement
 uniquement l'environnement de staging public
-(`staging-api.open-eidas.eu` / `staging-pki.open-eidas.eu` /
-`staging-ocsp.open-eidas.eu`).
+(`api.staging.open-eidas.eu` / `pki.staging.open-eidas.eu` /
+`ocsp.staging.open-eidas.eu`).
 
 Le code applicatif et le chart Helm restent dans
 [open-eidas/open-eidas](https://github.com/open-eidas/open-eidas). Ce dépôt
@@ -19,7 +19,7 @@ Non gérés par ce dépôt, doivent déjà être en place :
 - [CloudNativePG](https://cloudnative-pg.io/) (les CRD et l'opérateur) ;
 - une Gateway API (`gateway.networking.k8s.io`) nommée `shared-gateway` dans
   le namespace `ingress`, avec un listener HTTPS par hôte de staging
-  (`staging-api`/`staging-pki`/`staging-ocsp.open-eidas.eu`) et son
+  (`api`/`pki`/`ocsp.staging.open-eidas.eu`) et son
   `Certificate` cert-manager — ressource partagée, gérée ailleurs.
 
 Voir [docs/STAGING.md](https://github.com/open-eidas/open-eidas/blob/main/docs/STAGING.md)
@@ -32,6 +32,13 @@ dans le dépôt principal pour le guide pas-à-pas complet.
   contenu de `apps/`.
 - `apps/` — une Application ArgoCD par environnement/composant, gérée
   automatiquement par la racine :
+  - `open-eidas-staging-gateway.yaml` — trois listeners HTTP dédiés
+    (un par domaine de staging) ajoutés au Gateway partagé `shared-gateway`
+    (namespace `ingress`), possédé par une autre Application ArgoCD hors de
+    ce dépôt. Synchronise avec Server-Side Apply, sans prune (voir le
+    commentaire du fichier) : c'est le seul moyen de cohabiter proprement
+    avec l'autre gestionnaire de cette ressource partagée. HTTP seul pour
+    l'instant — le TLS par domaine est une étape ultérieure distincte.
   - `open-eidas-staging-postgres.yaml` — Secret scellé et Cluster
     CloudNativePG du staging (sync-wave `-1`, avant le chart applicatif).
   - `open-eidas-staging.yaml` — le chart open-eidas lui-même, en

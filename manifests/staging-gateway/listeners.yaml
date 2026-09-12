@@ -1,0 +1,46 @@
+# Ajoute, sans les remplacer, trois listeners HTTP dédiés (un par domaine de
+# staging) au Gateway partagé "shared-gateway" (namespace ingress), possédé
+# par une autre Application ArgoCD hors de ce dépôt.
+#
+# Ce manifeste est délibérément PARTIEL : il ne porte que spec.listeners, pas
+# gatewayClassName ni les autres listeners existants (tej.ovh, pamoi.fr,
+# palban.fr, mc, any-*). Ça ne fonctionne QUE parce que l'Application
+# ArgoCD associée synchronise avec Server-Side Apply (voir
+# apps/open-eidas-staging-gateway.yaml) : le champ spec.listeners du CRD
+# Gateway API est une liste associative indexée par "name", donc chaque
+# gestionnaire (field manager) peut posséder ses propres entrées sans écraser
+# celles des autres. Un `kubectl apply` (client-side) sur ce même fichier
+# écraserait purement et simplement tous les listeners existants — ne
+# JAMAIS l'appliquer autrement que via cette Application.
+#
+# HTTP seul pour l'instant (validation DNS/routage) : passer ces listeners en
+# HTTPS (avec Certificate cert-manager par domaine) est une étape ultérieure
+# distincte.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: shared-gateway
+  namespace: ingress
+spec:
+  listeners:
+    - name: open-eidas-staging-api
+      hostname: api.staging.open-eidas.eu
+      port: 80
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: open-eidas-staging-pki
+      hostname: pki.staging.open-eidas.eu
+      port: 80
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: open-eidas-staging-ocsp
+      hostname: ocsp.staging.open-eidas.eu
+      port: 80
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: All

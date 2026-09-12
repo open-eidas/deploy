@@ -1,6 +1,6 @@
 # Déploiement public de démonstration piloté par ArgoCD :
-#   staging-api.open-eidas.eu (TSA) / staging-pki.open-eidas.eu (CA) /
-#   staging-ocsp.open-eidas.eu (répondeur OCSP).
+#   api.staging.open-eidas.eu (TSA) / pki.staging.open-eidas.eu (CA) /
+#   ocsp.staging.open-eidas.eu (répondeur OCSP).
 #
 # Géré par le root-app.yaml de ce dépôt (motif app-of-apps) : ne pas
 # appliquer directement, sauf test isolé hors app-of-apps.
@@ -10,7 +10,7 @@
 # deploy/cert-manager/cluster-issuer-letsencrypt.yaml) :
 #   - un ingress controller exposé publiquement (ex. ingress-nginx) ;
 #   - cert-manager avec le ClusterIssuer "letsencrypt-prod" ;
-#   - les enregistrements DNS staging-api / staging-pki / staging-ocsp
+#   - les enregistrements DNS api/pki/ocsp.staging.open-eidas.eu
 #     pointant vers l'adresse publique de l'ingress controller.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
