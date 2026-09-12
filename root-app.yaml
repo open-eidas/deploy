@@ -15,7 +15,7 @@ metadata:
   name: open-eidas-root
   namespace: argocd
 spec:
-  project: default
+  project: eidas
 
   source:
     repoURL: https://github.com/open-eidas/deploy.git

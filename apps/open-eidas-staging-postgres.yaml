@@ -11,7 +11,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
 spec:
-  project: default
+  project: eidas
 
   source:
     repoURL: https://github.com/open-eidas/deploy.git
