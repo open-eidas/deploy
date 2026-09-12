@@ -1,0 +1,58 @@
+# Déploiement public de démonstration piloté par ArgoCD :
+#   staging-api.open-eidas.eu (TSA) / staging-pki.open-eidas.eu (CA) /
+#   staging-ocsp.open-eidas.eu (répondeur OCSP).
+#
+# Géré par le root-app.yaml de ce dépôt (motif app-of-apps) : ne pas
+# appliquer directement, sauf test isolé hors app-of-apps.
+#
+# Préalables sur le cluster cible, non gérés par cette Application (voir
+# open-eidas/open-eidas: deploy/helm/open-eidas/values-staging.yaml et
+# deploy/cert-manager/cluster-issuer-letsencrypt.yaml) :
+#   - un ingress controller exposé publiquement (ex. ingress-nginx) ;
+#   - cert-manager avec le ClusterIssuer "letsencrypt-prod" ;
+#   - les enregistrements DNS staging-api / staging-pki / staging-ocsp
+#     pointant vers l'adresse publique de l'ingress controller.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: open-eidas-staging
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/open-eidas/open-eidas.git
+    targetRevision: main
+    path: deploy/helm/open-eidas
+    helm:
+      valueFiles:
+        - values-staging.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: open-eidas-staging
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    # Le Secret des valeurs générées (mot de passe PostgreSQL, PIN des tokens
+    # SoftHSM, secret HMAC d'enrôlement) est produit par le chart via le motif
+    # `lookup` : ArgoCD doit tolérer sa dérive apparente d'un diff à l'autre
+    # plutôt que de le recréer, sous peine de rendre inaccessibles les données
+    # déjà écrites — et, pour les tokens de la CA, la hiérarchie entière.
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
+
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: open-eidas-generated
+      jsonPointers:
+        - /data

@@ -1,0 +1,34 @@
+# Application racine du motif "app-of-apps" ArgoCD.
+#
+# À appliquer une seule fois, manuellement, sur un cluster disposant déjà
+# d'ArgoCD :
+#
+#   kubectl apply -f root-app.yaml
+#
+# Elle synchronise ensuite le contenu du dossier apps/ de ce dépôt : chaque
+# fichier qui s'y trouve devient une Application ArgoCD gérée automatiquement
+# (ajout, modification ou suppression d'un fichier = ajout, modification ou
+# suppression de l'Application correspondante).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: open-eidas-root
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/open-eidas/deploy.git
+    targetRevision: main
+    path: apps
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
