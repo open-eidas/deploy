@@ -1,0 +1,22 @@
+# Cluster CloudNativePG pour le staging Open eIDAS. Le chart open-eidas
+# (postgres.external.*, voir values-staging.yaml) pointe vers le Service
+# "-rw" que CNPG crée pour ce Cluster.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: open-eidas-staging-postgres
+  namespace: open-eidas-staging
+spec:
+  instances: 1
+  storage:
+    size: 1Gi
+  bootstrap:
+    initdb:
+      database: openeidas
+      owner: openeidas
+      # Les clés "username"/"password" de ce Secret amorcent l'utilisateur
+      # applicatif : "password" y reprend délibérément la même valeur que
+      # "postgres-password", consommée par le chart open-eidas lui-même
+      # (voir sealed-secret.yaml) — les deux doivent rester synchronisées.
+      secret:
+        name: open-eidas-generated

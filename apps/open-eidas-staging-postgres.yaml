@@ -1,0 +1,36 @@
+# PostgreSQL du staging Open eIDAS : le Secret scellé (postgres-password et
+# les autres valeurs sensibles du chart) et le Cluster CloudNativePG qu'il
+# amorce. Un sync-wave négatif le fait passer avant open-eidas-staging.yaml
+# (wave par défaut 0), pour que le mot de passe et la base existent déjà
+# quand les Pods du chart démarrent.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: open-eidas-staging-postgres
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/open-eidas/deploy.git
+    targetRevision: main
+    path: manifests/staging-postgres
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: open-eidas-staging
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
