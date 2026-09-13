@@ -32,6 +32,23 @@ spec:
     helm:
       valueFiles:
         - values-staging.yaml
+      # Épingle chaque image sur le tag SHA publié par la CI (voir
+      # .github/workflows/ci.yml, job publish), pas sur `latest` : un tag
+      # flottant + imagePullPolicy=IfNotPresent ne se re-pull jamais tout
+      # seul, et le self-heal d'ArgoCD annule toute correction manuelle sur
+      # le cluster qui ne serait pas d'abord écrite ici. Mis à jour par la
+      # CI de open-eidas/open-eidas (voir son README) — ne pas éditer par
+      # une autre voie que ce mécanisme une fois automatisé.
+      values: |
+        ca:
+          image:
+            tag: "2d97c3c6ab9e1e668ed2d9ac35d5b9d7d6163cd3"
+        tsa:
+          image:
+            tag: "2d97c3c6ab9e1e668ed2d9ac35d5b9d7d6163cd3"
+        ocsp:
+          image:
+            tag: "2d97c3c6ab9e1e668ed2d9ac35d5b9d7d6163cd3"
 
   destination:
     server: https://kubernetes.default.svc
