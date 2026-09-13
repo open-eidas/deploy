@@ -32,17 +32,20 @@ dans le dépôt principal pour le guide pas-à-pas complet.
   contenu de `apps/`.
 - `apps/` — une Application ArgoCD par environnement/composant, gérée
   automatiquement par la racine :
-  - `open-eidas-staging-gateway.yaml` — trois listeners HTTP dédiés
-    (un par domaine de staging) ajoutés au Gateway partagé `shared-gateway`
-    (namespace `ingress`), possédé par une autre Application ArgoCD hors de
-    ce dépôt. Synchronise avec Server-Side Apply, sans prune (voir le
-    commentaire du fichier) : c'est le seul moyen de cohabiter proprement
-    avec l'autre gestionnaire de cette ressource partagée. HTTP seul pour
-    l'instant — le TLS par domaine est une étape ultérieure distincte.
   - `open-eidas-staging-postgres.yaml` — Secret scellé et Cluster
     CloudNativePG du staging (sync-wave `-1`, avant le chart applicatif).
   - `open-eidas-staging.yaml` — le chart open-eidas lui-même, en
-    environnement de staging public.
+    environnement de staging public. Les tags d'image (`ca`/`tsa`/`ocsp`)
+    sont épinglés en valeurs Helm inline sur un SHA de commit précis de
+    `open-eidas/open-eidas`, mis à jour automatiquement par sa CI (voir
+    « Épinglage des images » ci-dessous) — jamais sur `latest` :
+    `imagePullPolicy: IfNotPresent` ne se re-pull jamais tout seul sur un
+    tag flottant, et le self-heal ArgoCD annulerait toute correction faite
+    directement sur le cluster.
+
+Le listener HTTPS partagé `shared-gateway` (namespace `ingress`) pour les
+domaines de staging est géré manuellement, hors ArgoCD, en dehors de ce
+dépôt.
 - `manifests/staging-postgres/` — ressources brutes de l'Application
   `open-eidas-staging-postgres` :
   - `sealed-secret.yaml` — `SealedSecret` "open-eidas-generated" : mot de
@@ -78,6 +81,37 @@ shred -u /tmp/open-eidas-generated.yaml
 `password` doit toujours reprendre la même valeur que `postgres-password` :
 c'est ce que `cluster.yaml` utilise pour amorcer l'utilisateur applicatif
 PostgreSQL.
+
+## Épinglage des images de staging
+
+`apps/open-eidas-staging.yaml` embarque un tag d'image précis
+(`ca.image.tag`/`tsa.image.tag`/`ocsp.image.tag`, en valeurs Helm inline)
+plutôt que `latest`. Après chaque publication réussie sur `dev` dans
+[open-eidas/open-eidas](https://github.com/open-eidas/open-eidas), son job
+CI `pin-staging` committe ici le nouveau SHA — ce dépôt reste la seule
+source de vérité pour ArgoCD, qui applique le changement via son
+`selfHeal` déjà configuré. Cette CI n'a et n'aura jamais accès ni au
+cluster ni à ArgoCD directement : seulement à ce dépôt git, via une
+GitHub App dédiée.
+
+**Mise en place de la GitHub App** (à faire une fois, manuellement) :
+
+1. Organisation `open-eidas` → **Settings → Developer settings → GitHub
+   Apps → New GitHub App**.
+2. Nom libre (ex. `open-eidas-deploy-bot`), pas de webhook actif.
+3. Permissions : **Repository permissions → Contents: Read and write**
+   uniquement (rien d'autre — surtout pas d'accès à un quelconque secret
+   ou déploiement).
+4. Une fois créée : **Generate a private key** (télécharge un `.pem`), et
+   noter l'**App ID**.
+5. **Install App** → sélectionner uniquement le dépôt `open-eidas/deploy`.
+6. Dans les secrets du dépôt `open-eidas/open-eidas` (Settings → Secrets
+   and variables → Actions) : `OPENEIDAS_DEPLOY_APP_ID` (l'App ID) et
+   `OPENEIDAS_DEPLOY_APP_PRIVATE_KEY` (contenu du `.pem`).
+
+Tant que ces secrets n'existent pas, le job `pin-staging` s'exécute mais
+ne fait rien (avertissement, pas d'échec) — le pin reste alors manuel
+(éditer `apps/open-eidas-staging.yaml`, voir son commentaire).
 
 ## Ajouter un nouvel environnement
 
