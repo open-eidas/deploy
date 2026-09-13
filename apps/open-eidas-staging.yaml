@@ -15,13 +15,13 @@ spec:
       values: |
         ca:
           image:
-            tag: f2a9e4f2134fc256858d56533e0a961f4deb038d
+            tag: 4ff75830669116490527e73091e72d63e0b3ad1a
         tsa:
           image:
-            tag: f2a9e4f2134fc256858d56533e0a961f4deb038d
+            tag: 4ff75830669116490527e73091e72d63e0b3ad1a
         ocsp:
           image:
-            tag: f2a9e4f2134fc256858d56533e0a961f4deb038d
+            tag: 4ff75830669116490527e73091e72d63e0b3ad1a
   destination:
     server: https://kubernetes.default.svc
     namespace: open-eidas-staging
