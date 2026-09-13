@@ -12,9 +12,16 @@ spec:
     helm:
       valueFiles:
       - values-staging.yaml
-      values: "ca:\n  image:\n    tag: f2a9e4f2134fc256858d56533e0a961f4deb038d\n\
-        ocsp:\n  image:\n    tag: f2a9e4f2134fc256858d56533e0a961f4deb038d\ntsa:\n\
-        \  image:\n    tag: f2a9e4f2134fc256858d56533e0a961f4deb038d\n"
+      values: |
+        ca:
+          image:
+            tag: f2a9e4f2134fc256858d56533e0a961f4deb038d
+        tsa:
+          image:
+            tag: f2a9e4f2134fc256858d56533e0a961f4deb038d
+        ocsp:
+          image:
+            tag: f2a9e4f2134fc256858d56533e0a961f4deb038d
   destination:
     server: https://kubernetes.default.svc
     namespace: open-eidas-staging
