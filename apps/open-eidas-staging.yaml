@@ -1,22 +1,3 @@
-# Déploiement public de démonstration piloté par ArgoCD :
-#   api.staging.open-eidas.eu (TSA) / pki.staging.open-eidas.eu (CA) /
-#   ocsp.staging.open-eidas.eu (répondeur OCSP).
-#
-# Géré par le root-app.yaml de ce dépôt (motif app-of-apps) : ne pas
-# appliquer directement, sauf test isolé hors app-of-apps.
-#
-# open-eidas/open-eidas suit un gitflow : dev est la branche intégrée que
-# déploie ce staging, main ne suit que la production certifiée (voir
-# CONTRIBUTING.md de ce dépôt) — d'où targetRevision: dev ci-dessous.
-#
-# Préalables sur le cluster cible, non gérés par cette Application (voir
-# open-eidas/open-eidas: deploy/helm/open-eidas/values-staging.yaml, et
-# open-eidas/deploy: apps/open-eidas-staging-postgres.yaml pour ce qui EST
-# géré) :
-#   - une Gateway API "shared-gateway" (namespace ingress), avec un listener
-#     HTTPS par hôte de staging et son Certificate cert-manager ;
-#   - les enregistrements DNS api/pki/ocsp.staging.open-eidas.eu pointant
-#     vers l'adresse publique de shared-gateway.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -24,57 +5,34 @@ metadata:
   namespace: argocd
 spec:
   project: eidas
-
   source:
     repoURL: https://github.com/open-eidas/open-eidas.git
     targetRevision: dev
     path: deploy/helm/open-eidas
     helm:
       valueFiles:
-        - values-staging.yaml
-      # Épingle chaque image sur le tag SHA publié par la CI (voir
-      # .github/workflows/ci.yml, job publish), pas sur `latest` : un tag
-      # flottant + imagePullPolicy=IfNotPresent ne se re-pull jamais tout
-      # seul, et le self-heal d'ArgoCD annule toute correction manuelle sur
-      # le cluster qui ne serait pas d'abord écrite ici. Mis à jour par la
-      # CI de open-eidas/open-eidas (voir son README) — ne pas éditer par
-      # une autre voie que ce mécanisme une fois automatisé.
-      values: |
-        ca:
-          image:
-            tag: "f2a9e4f2134fc256858d56533e0a961f4deb038d"
-        tsa:
-          image:
-            tag: "f2a9e4f2134fc256858d56533e0a961f4deb038d"
-        ocsp:
-          image:
-            tag: "f2a9e4f2134fc256858d56533e0a961f4deb038d"
-
+      - values-staging.yaml
+      values: "ca:\n  image:\n    tag: f2a9e4f2134fc256858d56533e0a961f4deb038d\n\
+        ocsp:\n  image:\n    tag: f2a9e4f2134fc256858d56533e0a961f4deb038d\ntsa:\n\
+        \  image:\n    tag: f2a9e4f2134fc256858d56533e0a961f4deb038d\n"
   destination:
     server: https://kubernetes.default.svc
     namespace: open-eidas-staging
-
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
-    # Le Secret des valeurs générées (mot de passe PostgreSQL, PIN des tokens
-    # SoftHSM, secret HMAC d'enrôlement) est produit par le chart via le motif
-    # `lookup` : ArgoCD doit tolérer sa dérive apparente d'un diff à l'autre
-    # plutôt que de le recréer, sous peine de rendre inaccessibles les données
-    # déjà écrites — et, pour les tokens de la CA, la hiérarchie entière.
+    - CreateNamespace=true
     retry:
       limit: 5
       backoff:
         duration: 10s
         factor: 2
         maxDuration: 3m
-
   ignoreDifferences:
-    - group: ""
-      kind: Secret
-      name: open-eidas-generated
-      jsonPointers:
-        - /data
+  - group: ''
+    kind: Secret
+    name: open-eidas-generated
+    jsonPointers:
+    - /data
