@@ -31,7 +31,7 @@ spec:
     path: deploy/helm/open-eidas
     helm:
       valueFiles:
-        - values-staging.yaml
+      - values-staging.yaml
       # Épingle chaque image sur le tag SHA publié par la CI (voir
       # .github/workflows/ci.yml, job publish), pas sur `latest` : un tag
       # flottant + imagePullPolicy=IfNotPresent ne se re-pull jamais tout
@@ -42,13 +42,13 @@ spec:
       values: |
         ca:
           image:
-            tag: 4ff75830669116490527e73091e72d63e0b3ad1a
+            tag: a82ae4b5512b4b0ecc9f429e1ea8cf1caa0a1cbe
         tsa:
           image:
-            tag: 4ff75830669116490527e73091e72d63e0b3ad1a
+            tag: a82ae4b5512b4b0ecc9f429e1ea8cf1caa0a1cbe
         ocsp:
           image:
-            tag: 4ff75830669116490527e73091e72d63e0b3ad1a
+            tag: a82ae4b5512b4b0ecc9f429e1ea8cf1caa0a1cbe
 
   destination:
     server: https://kubernetes.default.svc
@@ -59,7 +59,7 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+    - CreateNamespace=true
     retry:
       limit: 5
       backoff:
@@ -68,8 +68,8 @@ spec:
         maxDuration: 3m
 
   ignoreDifferences:
-    - group: ""
-      kind: Secret
-      name: open-eidas-generated
-      jsonPointers:
-        - /data
+  - group: ""
+    kind: Secret
+    name: open-eidas-generated
+    jsonPointers:
+    - /data
