@@ -14,7 +14,7 @@ spec:
   project: eidas
 
   source:
-    repoURL: https://github.com/open-eidas/deploy.git
+    repoURL: https://github.com/otspi/deploy.git
     targetRevision: main
     path: manifests/staging-postgres
 

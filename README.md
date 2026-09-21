@@ -6,7 +6,7 @@ uniquement l'environnement de staging public
 `ocsp.staging.open-eidas.eu`).
 
 Le code applicatif et le chart Helm restent dans
-[open-eidas/open-eidas](https://github.com/open-eidas/open-eidas). Ce dépôt
+[otspi/open-eidas](https://github.com/otspi/open-eidas). Ce dépôt
 contient les manifestes ArgoCD `Application`, ainsi que les quelques
 ressources gérées hors de ce chart (Secret scellé, Cluster CloudNativePG).
 
@@ -22,7 +22,7 @@ Non gérés par ce dépôt, doivent déjà être en place :
   (`api`/`pki`/`ocsp.staging.open-eidas.eu`) et son
   `Certificate` cert-manager — ressource partagée, gérée ailleurs.
 
-Voir [docs/STAGING.md](https://github.com/open-eidas/open-eidas/blob/main/docs/STAGING.md)
+Voir [docs/STAGING.md](https://github.com/otspi/open-eidas/blob/main/docs/STAGING.md)
 dans le dépôt principal pour le guide pas-à-pas complet.
 
 ## Structure
@@ -37,7 +37,7 @@ dans le dépôt principal pour le guide pas-à-pas complet.
   - `open-eidas-staging.yaml` — le chart open-eidas lui-même, en
     environnement de staging public. Les tags d'image (`ca`/`tsa`/`ocsp`)
     sont épinglés en valeurs Helm inline sur un SHA de commit précis de
-    `open-eidas/open-eidas`, mis à jour automatiquement par sa CI (voir
+    `otspi/open-eidas`, mis à jour automatiquement par sa CI (voir
     « Épinglage des images » ci-dessous) — jamais sur `latest` :
     `imagePullPolicy: IfNotPresent` ne se re-pull jamais tout seul sur un
     tag flottant, et le self-heal ArgoCD annulerait toute correction faite
@@ -87,7 +87,7 @@ PostgreSQL.
 `apps/open-eidas-staging.yaml` embarque un tag d'image précis
 (`ca.image.tag`/`tsa.image.tag`/`ocsp.image.tag`, en valeurs Helm inline)
 plutôt que `latest`. Après chaque publication réussie sur `dev` dans
-[open-eidas/open-eidas](https://github.com/open-eidas/open-eidas), son job
+[otspi/open-eidas](https://github.com/otspi/open-eidas), son job
 CI `pin-staging` committe ici le nouveau SHA — ce dépôt reste la seule
 source de vérité pour ArgoCD, qui applique le changement via son
 `selfHeal` déjà configuré. Cette CI n'a et n'aura jamais accès ni au
@@ -105,7 +105,7 @@ GitHub App dédiée.
 4. Une fois créée : **Generate a private key** (télécharge un `.pem`), et
    noter l'**App ID**.
 5. **Install App** → sélectionner uniquement le dépôt `open-eidas/deploy`.
-6. Dans les secrets du dépôt `open-eidas/open-eidas` (Settings → Secrets
+6. Dans les secrets du dépôt `otspi/open-eidas` (Settings → Secrets
    and variables → Actions) : `OPENEIDAS_DEPLOY_APP_ID` (l'App ID) et
    `OPENEIDAS_DEPLOY_APP_PRIVATE_KEY` (contenu du `.pem`).
 

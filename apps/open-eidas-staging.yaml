@@ -26,7 +26,7 @@ spec:
   project: eidas
 
   source:
-    repoURL: https://github.com/open-eidas/open-eidas.git
+    repoURL: https://github.com/otspi/open-eidas.git
     targetRevision: dev
     path: deploy/helm/open-eidas
     helm:
