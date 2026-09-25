@@ -118,3 +118,7 @@ ne fait rien (avertissement, pas d'échec) — le pin reste alors manuel
 Ajouter un fichier dans `apps/`, le fusionner sur `main` : ArgoCD crée
 l'Application correspondante à la prochaine synchronisation, sans action
 manuelle sur le cluster.
+
+## Licence
+
+Ce dépôt est publié sous la licence publique de l'Union européenne (EUPL) v1.2 — voir [LICENSE](LICENSE).
